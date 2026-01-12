@@ -1,3 +1,57 @@
 spring:
   application:
     name: notes
+  jpa:
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: ${NOTES_SCHEMA:notes_schema}
+        default_batch_fetch_size: 100
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+        format_sql: true
+        jdbc:
+          batch_size: 100
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    default-schema: ${spring.jpa.properties.hibernate.default_schema}
+    parameters:
+      schema: ${spring.jpa.properties.hibernate.default_schema}
+      extension-schema: pg_catalog
+
+  datasource:
+    url: ${POSTGRES_URL}
+    hikari:
+      driver-class-name: org.postgresql.Driver
+      jdbc-url: ${spring.datasource.url}
+      password: ${POSTGRES_PASSWORD}
+      username: ${POSTGRES_USER}
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 300000
+      maxLifeTime: 600000
+      connection-timeout: 30000
+
+server:
+  port: ${SERVICE_PORT:8090}
+  max-http-request-header-size: 64KB
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metric
+
+db:
+  schema-creator:
+    enabled: true
+
+security:
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS}

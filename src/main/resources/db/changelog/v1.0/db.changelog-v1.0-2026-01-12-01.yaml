@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-01-12-01
+      author: ilya
+      changes:
+        - createTable:
+            tableName: notes
+            remarks: "table_for_notes"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(100)
+                  defaultValueComputed: "gen_random_uuid()"
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_notes
+              - column:
+                  name: title
+                  type: varchar(255)
+                  remarks: "Title"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false

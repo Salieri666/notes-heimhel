@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-01-12-03
+      author: ilya
+      changes:
+        - addUniqueConstraint:
+            tableName: notes
+            columnNames: title
+            constraintName: uq_notes_title
