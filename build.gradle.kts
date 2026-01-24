@@ -6,7 +6,7 @@ plugins {
 
 group = "com.heimhel"
 version = "0.0.1-SNAPSHOT"
-description = "Demo notes"
+description = "Notes demo"
 
 java {
 	toolchain {
@@ -35,9 +35,12 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 
-	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+	annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
+	implementation("com.zaxxer:HikariCP:7.0.2")
 	runtimeOnly("org.postgresql:postgresql")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

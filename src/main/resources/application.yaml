@@ -1,4 +1,8 @@
 spring:
+  spring:
+    config:
+      activate:
+        on-profile: dev, sit
   application:
     name: notes
   jpa:

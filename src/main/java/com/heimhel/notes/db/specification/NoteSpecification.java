@@ -2,6 +2,7 @@ package com.heimhel.notes.db.specification;
 
 import com.heimhel.notes.model.entity.NoteEntity;
 import com.heimhel.notes.model.filter.NoteFilter;
+import com.heimhel.notes.utils.SpecificationBuilder;
 import com.heimhel.notes.utils.SpecificationUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -15,12 +16,14 @@ import static java.util.Objects.isNull;
 public class NoteSpecification {
 
     public Specification<NoteEntity> byFilter(NoteFilter filter) {
-        if (isNull(filter)) {
+        if (filter == null) {
             filter = NoteFilter.builder().build();
         }
-        return Specification.where(byIds(filter.getIds()))
-                .and(byTitle(filter.getTitle()));
 
+        return new SpecificationBuilder<NoteEntity>()
+                .and(byIds(filter.getIds()))
+                .and(byTitle(filter.getTitle()))
+                .build();
     }
 
     private Specification<NoteEntity> byIds(Collection<String> ids) {
