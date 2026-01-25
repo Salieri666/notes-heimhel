@@ -43,13 +43,11 @@ services:
     image: quay.io/keycloak/keycloak:26.0.0
     container_name: keycloak-notes
     environment:
-      # DB settings for Keycloak
       KC_DB: "postgres"
       KC_DB_URL: "jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_POSTGRES_DB}"
       KC_DB_USERNAME: "${KEYCLOAK_POSTGRES_USER}"
       KC_DB_PASSWORD: "${KEYCLOAK_POSTGRES_PASSWORD}"
 
-      # bootstrap admin (создаст временного админа при первом старте)
       KC_BOOTSTRAP_ADMIN_USERNAME: "${KEYCLOAK_ADMIN}"
       KC_BOOTSTRAP_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
       KC_HTTP_ENABLED: "true"

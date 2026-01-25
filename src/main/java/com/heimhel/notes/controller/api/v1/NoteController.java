@@ -41,7 +41,6 @@ public class NoteController {
         return service.getAll(filter, pageable);
     }
 
-
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Save new note")
     public NoteDto saveNote(@RequestBody @Valid NoteSaveDto dto) {

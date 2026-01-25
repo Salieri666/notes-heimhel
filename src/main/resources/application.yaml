@@ -1,8 +1,7 @@
 spring:
-  spring:
-    config:
-      activate:
-        on-profile: dev, sit
+  config:
+    activate:
+      on-profile: dev, sit
   application:
     name: notes
   jpa:
@@ -40,6 +39,13 @@ spring:
       idle-timeout: 300000
       maxLifeTime: 600000
       connection-timeout: 30000
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISSUER_URI}
+          jwk-set-uri: ${JWK_SET_URI}
 
 server:
   port: ${SERVICE_PORT:8090}
