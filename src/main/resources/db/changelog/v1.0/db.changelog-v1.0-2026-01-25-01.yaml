@@ -1,0 +1,80 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-01-25-02
+      author: ilya
+      changes:
+        - createTable:
+            tableName: app_user
+            remarks: "table_for_users"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(200)
+                  defaultValueComputed: "gen_random_uuid()"
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_app_user
+              - column:
+                  name: username
+                  type: varchar(255)
+                  remarks: "Preferred username"
+              - column:
+                  name: email
+                  type: varchar(255)
+                  remarks: "Email address"
+              - column:
+                  name: first_name
+                  type: varchar(255)
+              - column:
+                  name: last_name
+                  type: varchar(255)
+              - column:
+                  name: middle_name
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: "now()"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: "now()"
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2026-01-14-02
+      author: ilya
+      changes:
+        - createTable:
+            tableName: app_user_role
+            columns:
+              - column:
+                  name: id
+                  type: varchar(200)
+                  defaultValueComputed: "gen_random_uuid()"
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_app_user_role
+              - column:
+                  name: user_id
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: app_user_role
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            constraintName: fk_user_roles_user
+            onDelete: CASCADE

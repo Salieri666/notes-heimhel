@@ -19,6 +19,10 @@ spring:
         jdbc:
           batch_size: 100
 
+  threads:
+    virtual:
+      enabled: true
+
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -56,7 +60,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus,health,info,metric
+        include: prometheus,health,info,metrics
+  endpoint:
+    prometheus:
+      enabled: true
 
 db:
   schema-creator:

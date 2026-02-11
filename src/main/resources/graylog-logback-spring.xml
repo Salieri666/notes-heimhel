@@ -1,0 +1,29 @@
+<configuration>
+    <!-- console для локальной разработки -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- GELF appender -->
+    <appender name="GELF" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
+        <!-- адрес внутри docker сети: имя сервиса graylog и порт 12201 -->
+        <host>graylog</host>
+        <protocol>UDP</protocol>
+        <port>12201</port>
+        <facility>notes-service</facility>
+        <extractStackTrace>true</extractStackTrace>
+        <filterStackTrace>false</filterStackTrace>
+
+        <!-- минимальный уровень -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="GELF"/>
+    </root>
+</configuration>

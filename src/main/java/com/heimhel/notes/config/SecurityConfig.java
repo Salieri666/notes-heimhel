@@ -30,6 +30,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,14 +43,15 @@ public class SecurityConfig {
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
-    public SecurityFilterChain userServiceSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain userServiceSecurityFilterChain(HttpSecurity http) {
         http
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(httpRequest -> httpRequest
                         .requestMatchers("/error", "/v3/api-docs**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**")
                         .permitAll()
-                        .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class, PrometheusScrapeEndpoint.class, MetricsEndpoint.class)).permitAll()
+                        .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class, PrometheusScrapeEndpoint.class, MetricsEndpoint.class))
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer
@@ -80,7 +82,7 @@ public class SecurityConfig {
         }
         var roles = (List<String>) realmAccess.get("roles");
         return roles.stream()
-                .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                .map(r -> new SimpleGrantedAuthority("ROLE_" + r.toUpperCase(Locale.ROOT)))
                 .collect(Collectors.toList());
     }
 

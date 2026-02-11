@@ -5,6 +5,7 @@ services:
   service-db:
     image: postgres:18.1
     restart: always
+    container_name: service-db
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -25,6 +26,7 @@ services:
   keycloak-db:
     image: postgres:18.1
     restart: always
+    container_name: keycloak-db
     environment:
       POSTGRES_USER: "${KEYCLOAK_POSTGRES_USER}"
       POSTGRES_PASSWORD: "${KEYCLOAK_POSTGRES_PASSWORD}"
@@ -71,6 +73,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: notes-service
+    container_name: notes-service
     restart: unless-stopped
     ports:
       - "${SERVICE_PORT}:${SERVICE_PORT}"
@@ -83,6 +86,8 @@ services:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
+#      LOGSTASH_HOST: "${APP_LOGSTASH_HOST}" elk
+#      LOGSTASH_PORT: "${APP_LOGSTASH_PORT}" elk
 
     depends_on:
       - service-db
@@ -90,9 +95,161 @@ services:
     networks:
       - main_network
 
+### gray log
+#
+#  mongo:
+#    image: mongo:8.2.5
+#    container_name: graylog-mongo
+#    restart: unless-stopped
+#    volumes:
+#      - graylog-mongo-data:/data/db
+#    networks:
+#      - main_network
+#
+#  graylog-elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
+#    container_name: graylog-elasticsearch
+#    environment:
+#      - discovery.type=single-node
+#      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    volumes:
+#      - graylog-es-data:/usr/share/elasticsearch/data
+#    networks:
+#      - main_network
+#
+#  graylog:
+#    image: graylog/graylog:7.0
+#    container_name: graylog
+#    environment:
+#      GRAYLOG_PASSWORD_SECRET: "someverystrongsecretkey123"
+#      GRAYLOG_ROOT_PASSWORD_SHA2: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9" # password: admin123
+#      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9000/"
+#      GRAYLOG_ELASTICSEARCH_HOSTS: "http://graylog-elasticsearch:9200"
+#    depends_on:
+#      - mongo
+#      - graylog-elasticsearch
+#    ports:
+#      - "9000:9000"            # web UI
+#      - "12201:12201/udp"     # GELF UDP (app -> graylog)
+#      - "12201:12201/tcp"     # GELF TCP (опционально)
+#      - "1514:1514"           # syslog TCP (опционально)
+#      - "1514:1514/udp"       # syslog UDP (опционально)
+#    volumes:
+#      - graylog-journal:/usr/share/graylog/data/journal
+#    networks:
+#      - main_network
+
+## Grafana + Prometheus + Loki для мониторинга и логирования
+#
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    volumes:
+#      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+#    ports:
+#      - "9090:9090"
+#    networks:
+#      - main_network
+#
+#  grafana:
+#    image: grafana/grafana:latest
+#    container_name: grafana
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#      # опционально: установка плагинов
+#      # - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      - grafana-data:/var/lib/grafana
+#      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro  # опционально, для авто datasource
+#    depends_on:
+#      - prometheus
+#      - loki
+#    networks:
+#      - main_network
+#
+#  loki:
+#    image: grafana/loki:latest
+#    container_name: loki
+#    ports:
+#      - "3100:3100"
+#    command: -config.file=/etc/loki/local-config.yaml
+#    volumes:
+#      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+#    networks:
+#      - main_network
+#
+#  promtail:
+#    image: grafana/promtail:latest
+#    container_name: promtail
+#    volumes:
+#      - ./monitoring/promtail.yml:/etc/promtail/config.yml:ro
+#      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+#      - /var/log:/var/log:ro
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    networks:
+#      - main_network
+
+
+# elk-logback-spring.xml ELK для логирования в Elasticsearch
+#
+#  elasticsearch-notes:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
+#    container_name: elasticsearch-notes
+#    environment:
+#      - discovery.type=single-node
+#      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+#      - xpack.security.enabled=false
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    volumes:
+#      - esdata:/usr/share/elasticsearch/data
+#    ports:
+#      - "${ES_PORT}:9200"
+#    networks:
+#      - main_network
+#
+#  logstash-notes:
+#    image: docker.elastic.co/logstash/logstash:7.17.13
+#    container_name: logstash-notes
+#    volumes:
+#      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+#    ports:
+#      - "${LOGSTASH_PORT}:5000"   # Logstash TCP для JSON
+#    depends_on:
+#      - elasticsearch-notes
+#    networks:
+#      - main_network
+#
+#  kibana-notes:
+#    image: docker.elastic.co/kibana/kibana:7.17.13
+#    container_name: kibana-notes
+#    environment:
+#      - ELASTICSEARCH_HOSTS=http://elasticsearch-notes:9200
+#      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+#    ports:
+#      - "${KIBANA_PORT}:5601"
+#    depends_on:
+#      - elasticsearch-notes
+#    networks:
+#      - main_network
+
 volumes:
   db-data:
   keycloak-db-data:
+  graylog-mongo-data:
+  graylog-es-data:
+  graylog-journal:
+#  grafana-data: #grafana
+#  esdata: #elk
 
 networks:
   main_network:

@@ -28,6 +28,7 @@ public class NoteController {
     @GetMapping("/{id}")
     @Operation(summary = "Get note by id")
     public NoteDto getNoteById(@PathVariable String id) {
+        log.info("Get note by id {}", id);
         return service.getById(id);
     }
 
@@ -38,12 +39,14 @@ public class NoteController {
             @RequestBody(required = false) NoteFilter filter,
             @Parameter(hidden = true) Pageable pageable
     ) {
+        log.info("Get all notes by filter {}", filter);
         return service.getAll(filter, pageable);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Save new note")
     public NoteDto saveNote(@RequestBody @Valid NoteSaveDto dto) {
+        log.info("Save new note {}", dto);
         return service.save(dto);
     }
 
@@ -53,12 +56,14 @@ public class NoteController {
             @PathVariable String id,
             @RequestBody @Valid NoteSaveDto dto
     ) {
+        log.info("Update note by id {}", id);
         return service.update(id, dto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete note by id")
     public void deleteNote(@PathVariable String id) {
+        log.info("Delete note by id {}", id);
         service.deleteById(id);
     }
 }
