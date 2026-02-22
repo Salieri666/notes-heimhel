@@ -85,8 +85,6 @@ services:
     restart: unless-stopped
     ports:
       - "${SERVICE_PORT}:${SERVICE_PORT}"
-    env_file:
-      - .env
     environment:
       NOTES_SCHEMA: "${NOTES_SCHEMA}"
       SERVICE_PORT: "${SERVICE_PORT}"
