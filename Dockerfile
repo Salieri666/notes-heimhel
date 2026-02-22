@@ -7,6 +7,8 @@ COPY build.gradle.kts settings.gradle.kts gradlew ./
 COPY gradle gradle
 COPY src src
 
+RUN chmod +x ./gradlew
+
 # Сборка jar без тестов
 RUN ./gradlew clean bootJar -x test --no-daemon
 
