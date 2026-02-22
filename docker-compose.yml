@@ -261,4 +261,5 @@ volumes:
 
 networks:
   main_network:
+    name: main_network
     driver: bridge
