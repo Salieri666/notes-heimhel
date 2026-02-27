@@ -35,11 +35,8 @@ dependencies {
 	implementation("io.micrometer:micrometer-registry-prometheus")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
-//	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 	implementation("biz.paluch.logging:logstash-gelf:1.15.1")
-	implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
-	implementation("io.micrometer:micrometer-registry-otlp")
-	implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.25.0-alpha")
+
 
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")

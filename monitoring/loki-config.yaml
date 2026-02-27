@@ -5,10 +5,23 @@ server:
 
 common:
   path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
   replication_factor: 1
   ring:
     kvstore:
       store: inmemory
+
+limits_config:
+  allow_structured_metadata: true
+  otlp_config:
+    resource_attributes:
+      attributes_config:
+        - action: index_label
+          attributes:
+            - service.group
 
 schema_config:
   configs:
@@ -24,5 +37,5 @@ storage_config:
   filesystem:
     directory: /loki/chunks
 
-limits_config:
-  allow_structured_metadata: false
+compactor:
+  working_directory: /loki/compactor

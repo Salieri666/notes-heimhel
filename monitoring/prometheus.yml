@@ -1,16 +1,15 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
   - job_name: 'notes-service'
-    metrics_path: '/actuator/prometheus'
+    metrics_path: /notes-service/actuator/prometheus
     static_configs:
-      - targets: ['notes-service:8090']    # замените порт на INTERNAL порт контейнера (SERVICE_PORT внутри образа)
-
-  - job_name: 'keycloak'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['keycloak-notes:9000']  # Keycloak контейнер в том же compose
+      - targets: ['notes-service:8090']
+    relabel_configs:
+      - target_label: service
+        replacement: notes-service
 
   - job_name: 'prometheus'
     static_configs:

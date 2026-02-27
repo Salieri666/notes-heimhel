@@ -1,12 +1,70 @@
 apiVersion: 1
-datasources:
+
+deleteDatasources:
   - name: Prometheus
+    orgId: 1
+
+datasources:
+  - uid: prometheus
+    orgId: 1
+    name: Prometheus
     type: prometheus
+    typeName: Prometheus
     access: proxy
     url: http://prometheus:9090
+    password: ''
+    user: ''
+    database: ''
+    basicAuth: false
     isDefault: true
+    jsonData:
+      exemplarTraceIdDestinations:
+        - datasourceUid: tempo
+          name: trace_id
+      httpMethod: POST
+    readOnly: false
+    editable: true
 
-  - name: Loki
+  - uid: tempo
+    orgId: 1
+    name: Tempo
+    type: tempo
+    typeName: Tempo
+    access: proxy
+    url: http://tempo:3200
+    password: ''
+    user: ''
+    database: ''
+    basicAuth: false
+    isDefault: false
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToLogsV2:
+        customQuery: false
+        datasourceUid: loki
+        filterBySpanID: false
+        filterByTraceID: true
+    readOnly: false
+    editable: true
+
+  - uid: loki
+    orgId: 1
+    name: Loki
     type: loki
+    typeName: Loki
     access: proxy
     url: http://loki:3100
+    password: ''
+    user: ''
+    database: ''
+    basicAuth: false
+    isDefault: false
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherType: label        # требует Grafana 9.5+
+          matcherRegex: "trace_id"  # имя поля в метаданных
+          datasourceUid: "tempo"
+    readOnly: false
+    editable: true

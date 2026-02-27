@@ -51,19 +51,15 @@ services:
       KC_DB_URL: "jdbc:postgresql://keycloak-db:5432/${KEYCLOAK_POSTGRES_DB}"
       KC_DB_USERNAME: "${KEYCLOAK_POSTGRES_USER}"
       KC_DB_PASSWORD: "${KEYCLOAK_POSTGRES_PASSWORD}"
-
       KEYCLOAK_ADMIN: "${KEYCLOAK_ADMIN}"
       KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
       KC_HTTP_ENABLED: "true"
-
       KC_HOSTNAME: "${KEYCLOAK_HOSTNAME}"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HOSTNAME_STRICT: "false"
-
       KC_PROXY: "edge"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
-
     ports:
       - "${KEYCLOAK_HTTP_PORT}:8080"
       - "${KEYCLOAK_DEBUG_PORT}:9000"
@@ -93,183 +89,106 @@ services:
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
       ISSUER_URI: "${ISSUER_URI}"
       JWK_SET_URI: "${JWK_SET_URI}"
-#      LOGSTASH_HOST: "${APP_LOGSTASH_HOST}" elk
-#      LOGSTASH_PORT: "${APP_LOGSTASH_PORT}" elk
+
+      OTEL_SERVICE_NAME: notes-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector-service:4327
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_RESOURCE_ATTRIBUTES: service.version=1.0.0,deployment.environment=development
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_EXPORTER_OTLP_COMPRESSION: "gzip"
+      OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: "32"
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "32"
+      OTEL_EXPORTER_OTLP_TIMEOUT: "30000"
+      OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
 
     depends_on:
       - service-db
-
     networks:
       - main_network
 
-  grafana-lgtm:
-    image: grafana/otel-lgtm:latest
-    container_name: grafana-lgtm
-    ports:
-      - "3000:3000"     # Grafana UI
-      - "4317:4317"     # OTLP gRPC receiver
-      - "4318:4318"     # OTLP HTTP receiver
-    environment:
-      - OTEL_METRIC_EXPORT_INTERVAL=5000
+  otel-collector-service:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector-service
+    command: [ "--config=/etc/otel-collector.yaml" ]
     volumes:
-      - lgtm_data:/data
+      - ./monitoring/otel-collector.yaml:/etc/otel-collector.yaml:ro
+    ports:
+      - "4327:4327" # OTLP gRPC
+      - "4328:4328" # OTLP HTTP
+    depends_on:
+      - loki
+      - tempo
+    networks:
+      - main_network
 
-### gray log
-#
-#  mongo:
-#    image: mongo:8.2.5
-#    container_name: graylog-mongo
-#    restart: unless-stopped
-#    volumes:
-#      - graylog-mongo-data:/data/db
-#    networks:
-#      - main_network
-#
-#  graylog-elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
-#    container_name: graylog-elasticsearch
-#    environment:
-#      - discovery.type=single-node
-#      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#    volumes:
-#      - graylog-es-data:/usr/share/elasticsearch/data
-#    networks:
-#      - main_network
-#
-#  graylog:
-#    image: graylog/graylog:7.0
-#    container_name: graylog
-#    environment:
-#      GRAYLOG_PASSWORD_SECRET: "someverystrongsecretkey123"
-#      GRAYLOG_ROOT_PASSWORD_SHA2: "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9" # password: admin123
-#      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9000/"
-#      GRAYLOG_ELASTICSEARCH_HOSTS: "http://graylog-elasticsearch:9200"
-#    depends_on:
-#      - mongo
-#      - graylog-elasticsearch
-#    ports:
-#      - "9000:9000"            # web UI
-#      - "12201:12201/udp"     # GELF UDP (app -> graylog)
-#      - "12201:12201/tcp"     # GELF TCP (опционально)
-#      - "1514:1514"           # syslog TCP (опционально)
-#      - "1514:1514/udp"       # syslog UDP (опционально)
-#    volumes:
-#      - graylog-journal:/usr/share/graylog/data/journal
-#    networks:
-#      - main_network
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - main_network
 
-## Grafana + Prometheus + Loki для мониторинга и логирования
-#
-#  prometheus:
-#    image: prom/prometheus:latest
-#    container_name: prometheus
-#    volumes:
-#      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-#    ports:
-#      - "9090:9090"
-#    networks:
-#      - main_network
-#
-#  grafana:
-#    image: grafana/grafana:latest
-#    container_name: grafana
-#    environment:
-#      - GF_SECURITY_ADMIN_USER=admin
-#      - GF_SECURITY_ADMIN_PASSWORD=admin
-#      # опционально: установка плагинов
-#      # - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      - grafana-data:/var/lib/grafana
-#      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro  # опционально, для авто datasource
-#    depends_on:
-#      - prometheus
-#      - loki
-#    networks:
-#      - main_network
-#
-#  loki:
-#    image: grafana/loki:latest
-#    container_name: loki
-#    ports:
-#      - "3100:3100"
-#    command: -config.file=/etc/loki/local-config.yaml
-#    volumes:
-#      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
-#    networks:
-#      - main_network
-#
-#  promtail:
-#    image: grafana/promtail:latest
-#    container_name: promtail
-#    volumes:
-#      - ./monitoring/promtail.yml:/etc/promtail/config.yml:ro
-#      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-#      - /var/log:/var/log:ro
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    networks:
-#      - main_network
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: tempo
+    user: "0"
+    command: ["-config.file=/etc/tempo.yaml"]
+    ports:
+      - "3200:3200"     # tempo API
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    volumes:
+      - ./monitoring/tempo.yaml:/etc/tempo.yaml
+      - ./monitoring/tempo-data:/var/tempo/traces # <--- ВАЖНО: Сохранение данных
+    depends_on:
+      - loki
+    networks:
+      - main_network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - main_network
 
-# elk-logback-spring.xml ELK для логирования в Elasticsearch
-#
-#  elasticsearch-notes:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
-#    container_name: elasticsearch-notes
-#    environment:
-#      - discovery.type=single-node
-#      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-#      - xpack.security.enabled=false
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#    volumes:
-#      - esdata:/usr/share/elasticsearch/data
-#    ports:
-#      - "${ES_PORT}:9200"
-#    networks:
-#      - main_network
-#
-#  logstash-notes:
-#    image: docker.elastic.co/logstash/logstash:7.17.13
-#    container_name: logstash-notes
-#    volumes:
-#      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-#    ports:
-#      - "${LOGSTASH_PORT}:5000"   # Logstash TCP для JSON
-#    depends_on:
-#      - elasticsearch-notes
-#    networks:
-#      - main_network
-#
-#  kibana-notes:
-#    image: docker.elastic.co/kibana/kibana:7.17.13
-#    container_name: kibana-notes
-#    environment:
-#      - ELASTICSEARCH_HOSTS=http://elasticsearch-notes:9200
-#      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
-#    ports:
-#      - "${KIBANA_PORT}:5601"
-#    depends_on:
-#      - elasticsearch-notes
-#    networks:
-#      - main_network
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - main_network
 
 volumes:
   db-data:
   keycloak-db-data:
-  lgtm_data:
-#  graylog-mongo-data:
-#  graylog-es-data:
-#  graylog-journal:
-#  grafana-data: #grafana
-#  esdata: #elk
+  loki-data:
+  prometheus-data:
+  grafana-data:
+  tempo-data:
 
 networks:
   main_network:
