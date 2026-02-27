@@ -102,6 +102,18 @@ services:
     networks:
       - main_network
 
+  grafana-lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: grafana-lgtm
+    ports:
+      - "3000:3000"     # Grafana UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    environment:
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
+    volumes:
+      - lgtm_data:/data
+
 ### gray log
 #
 #  mongo:
@@ -252,6 +264,7 @@ services:
 volumes:
   db-data:
   keycloak-db-data:
+  lgtm_data:
 #  graylog-mongo-data:
 #  graylog-es-data:
 #  graylog-journal:

@@ -43,6 +43,13 @@ public class NoteController {
         return service.getAll(filter, pageable);
     }
 
+    @PostMapping("/test-error/{id}")
+    @Operation(summary = "Get test error")
+    public NoteDto getTestErrorById(@PathVariable String id) {
+        log.info("Get test error by id {}", id);
+        throw new RuntimeException("Test error: " + id);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Save new note")
     public NoteDto saveNote(@RequestBody @Valid NoteSaveDto dto) {

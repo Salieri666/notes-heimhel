@@ -67,6 +67,24 @@ management:
     prometheus:
       enabled: true
 
+  otlp:
+    metrics:
+      export:
+        url: http://192.168.0.103:4318/v1/metrics # Micrometer OTLP registry
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://192.168.0.103:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://192.168.0.103:4318/v1/logs
+  tracing:
+    sampling:
+      probability: 1.0 # Записываем всё для теста
+
+
 db:
   schema-creator:
     enabled: true
@@ -74,3 +92,5 @@ db:
 security:
   cors:
     allowed-origins: ${ALLOWED_ORIGINS}
+
+
