@@ -2,26 +2,29 @@
 FROM gradle:9.2.1-jdk25 AS build
 WORKDIR /build
 
-# Копируем файлы проекта
+ARG OTEL_VERSION=2.25.0
+
+USER root
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+RUN curl -L -s -o opentelemetry-javaagent.jar \
+    https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_VERSION}/opentelemetry-javaagent.jar
+
 COPY build.gradle.kts settings.gradle.kts gradlew ./
 COPY gradle gradle
 COPY src src
-COPY opentelemetry-javaagent.jar opentelemetry-javaagent.jar
 
 RUN chmod +x ./gradlew
 
-# Сборка jar без тестов
 RUN ./gradlew clean bootJar -x test --no-daemon
 
-# ---- Run stage ----
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
-# Копируем jar из build stage
 COPY --from=build /build/build/libs/*.jar app.jar
 COPY --from=build /build/opentelemetry-javaagent.jar opentelemetry-javaagent.jar
-# ENV переменная для профиля Spring
+
 ENV SPRING_PROFILES_ACTIVE=sit
 
-# Команда запуска приложения
+# Команда запуска
 CMD ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "-jar", "app.jar"]

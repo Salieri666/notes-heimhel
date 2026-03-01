@@ -98,12 +98,12 @@ services:
       OTEL_LOGS_EXPORTER: otlp
       OTEL_RESOURCE_ATTRIBUTES: service.version=1.0.0,deployment.environment=development
       OTEL_TRACES_SAMPLER: parentbased_traceidratio
-      OTEL_TRACES_SAMPLER_ARG: "1.0"
-      OTEL_EXPORTER_OTLP_COMPRESSION: "gzip"
-      OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: "32"
-      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: "32"
-      OTEL_EXPORTER_OTLP_TIMEOUT: "30000"
-      OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+      OTEL_TRACES_SAMPLER_ARG: 1.0
+      OTEL_EXPORTER_OTLP_COMPRESSION: gzip
+      OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: 32
+      OTEL_BSP_MAX_EXPORT_BATCH_SIZE: 32
+      OTEL_EXPORTER_OTLP_TIMEOUT: 10000
+      OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: true
 
     depends_on:
       - service-db
@@ -111,7 +111,7 @@ services:
       - main_network
 
   otel-collector-service:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.146.1
     container_name: otel-collector-service
     command: [ "--config=/etc/otel-collector.yaml" ]
     volumes:
@@ -126,7 +126,7 @@ services:
       - main_network
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.6.7
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
@@ -148,14 +148,14 @@ services:
       - "4318:4318"     # OTLP HTTP
     volumes:
       - ./monitoring/tempo.yaml:/etc/tempo.yaml
-      - ./monitoring/tempo-data:/var/tempo/traces # <--- ВАЖНО: Сохранение данных
+      - ./monitoring/tempo-data:/var/tempo/traces
     depends_on:
       - loki
     networks:
       - main_network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.10.0
     container_name: prometheus
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -166,7 +166,7 @@ services:
       - main_network
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.4.0
     container_name: grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: "admin"
