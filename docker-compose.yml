@@ -75,32 +75,32 @@ services:
     networks:
       - main_network
 
-  notes-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: notes-service
-    container_name: notes-service
-    restart: unless-stopped
-    ports:
-      - "${SERVICE_PORT}:${SERVICE_PORT}"
-    environment:
-      NOTES_SCHEMA: "${NOTES_SCHEMA}"
-      SERVICE_PORT: "${SERVICE_PORT}"
-      POSTGRES_URL: "${POSTGRES_URL}"
-      POSTGRES_USER: "${POSTGRES_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
-      ISSUER_URI: "${ISSUER_URI}"
-      JWK_SET_URI: "${JWK_SET_URI}"
-#      LOGSTASH_HOST: "${APP_LOGSTASH_HOST}" elk
-#      LOGSTASH_PORT: "${APP_LOGSTASH_PORT}" elk
-
-    depends_on:
-      - service-db
-
-    networks:
-      - main_network
+#  notes-service:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    image: notes-service
+#    container_name: notes-service
+#    restart: unless-stopped
+#    ports:
+#      - "${SERVICE_PORT}:${SERVICE_PORT}"
+#    environment:
+#      NOTES_SCHEMA: "${NOTES_SCHEMA}"
+#      SERVICE_PORT: "${SERVICE_PORT}"
+#      POSTGRES_URL: "${POSTGRES_URL}"
+#      POSTGRES_USER: "${POSTGRES_USER}"
+#      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+#      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
+#      ISSUER_URI: "${ISSUER_URI}"
+#      JWK_SET_URI: "${JWK_SET_URI}"
+##      LOGSTASH_HOST: "${APP_LOGSTASH_HOST}" elk
+##      LOGSTASH_PORT: "${APP_LOGSTASH_PORT}" elk
+#
+#    depends_on:
+#      - service-db
+#
+#    networks:
+#      - main_network
 
 ### gray log
 #
