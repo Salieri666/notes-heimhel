@@ -32,3 +32,9 @@ pg_dump -h remote_host -p 5432 -U db_user -d db_name -F c -f backup.dump
 
 # How to restore dumps of postgres database
 pg_restore -h remote_host -p 5432 -U db_user -d db_name backup.dump
+
+# How to create dump from container
+docker exec -e PGPASSWORD='postgres' compli-sql-db \
+pg_dump -U postgres -d cmpl -F t -f /tmp/20260303_dump.tar
+
+docker cp compli-sql-db:/tmp/20260303_dump.tar .
