@@ -26,3 +26,9 @@ http://localhost:8090/swagger-ui/index.html
 
 # For local frontend
 docker compose --env-file .env up -d
+
+# How to create dumps of postgres database
+pg_dump -h remote_host -p 5432 -U db_user -d db_name -F c -f backup.dump
+
+# How to restore dumps of postgres database
+pg_restore -h remote_host -p 5432 -U db_user -d db_name backup.dump
