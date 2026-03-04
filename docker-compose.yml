@@ -78,6 +78,8 @@ services:
     image: notes-service
     container_name: notes-service
     restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
     ports:
       - "${SERVICE_PORT}:${SERVICE_PORT}"
     environment:
@@ -106,6 +108,18 @@ services:
       OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "${OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED}"
       OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED}"
 
+      PYROSCOPE_APPLICATION_NAME: "${OTEL_NOTES_SERVICE_NAME}"
+      PYROSCOPE_SERVER_ADDRESS: "${PYROSCOPE_SERVER_ADDRESS}"
+      # CPU/itimer/wall — выбор CPU варианта (itimer/cpu/wall)
+      PYROSCOPE_PROFILER_EVENT: "cpu"        # или "wall" или "itimer"
+      # Включить профилирование аллокаций (threshold в байтах). Поставь не 0 в проде (high overhead)
+      PYROSCOPE_PROFILER_ALLOC: "524288"     # 512 KB — стартовая точка
+      # Включить профилирование lock/contended (threshold в наносекундах)
+      PYROSCOPE_PROFILER_LOCK: "10000000"    # 10ms (пример)
+      # Для одновременной поддержки нескольких event-типов иногда нужно использовать jfr формат:
+      PYROSCOPE_FORMAT: "jfr"
+      # частота выгрузки
+      PYROSCOPE_UPLOAD_INTERVAL: "10s"
     depends_on:
       - service-db
     networks:
@@ -139,7 +153,7 @@ services:
       - main_network
 
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:2.10.1
     container_name: tempo
     user: "0"
     command: ["-config.file=/etc/tempo.yaml"]
@@ -147,9 +161,12 @@ services:
       - "3200:3200"     # tempo API
       - "4317:4317"     # OTLP gRPC
       - "4318:4318"     # OTLP HTTP
+      - "9095:9095"
     volumes:
       - ./monitoring/tempo.yaml:/etc/tempo.yaml
-      - ./monitoring/tempo-data:/var/tempo/traces
+      - ./monitoring/tempo-data/wal:/var/tempo/wal
+      - ./monitoring/tempo-data/blocks:/var/tempo/blocks
+      - ./monitoring/tempo-data/generator-wal:/var/tempo/generator/wal
     depends_on:
       - loki
     networks:
@@ -161,8 +178,23 @@ services:
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'
+      - '--web.enable-lifecycle'
     ports:
       - "9090:9090"
+    networks:
+      - main_network
+
+  pyroscope:
+    image: grafana/pyroscope:1.17.4
+    container_name: pyroscope
+    ports:
+      - "4040:4040"
+    volumes:
+      - pyroscope-data:/var/lib/pyroscope
     networks:
       - main_network
 
@@ -193,6 +225,7 @@ volumes:
   keycloak-db-data:
   loki-data:
   prometheus-data:
+  pyroscope-data:
   grafana-data:
 
 networks:

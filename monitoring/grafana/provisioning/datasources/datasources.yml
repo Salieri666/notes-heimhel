@@ -45,6 +45,12 @@ datasources:
         datasourceUid: loki
         filterBySpanID: false
         filterByTraceID: true
+      streamingEnabled:
+        search: true
+        metrics: true
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus
     readOnly: false
     editable: true
 
@@ -70,3 +76,11 @@ datasources:
           url: $${__value.raw}
     readOnly: false
     editable: true
+
+  - name: Pyroscope
+    type: grafana-pyroscope-datasource
+    access: proxy
+    url: http://pyroscope:4040
+    isDefault: false
+    jsonData:
+      backendType: 'pyroscope'

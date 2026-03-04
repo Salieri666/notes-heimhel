@@ -1,6 +1,10 @@
 server:
   http_listen_port: 3200
   grpc_listen_port: 9095
+  grpc_server_max_recv_msg_size: 67108864
+  grpc_server_max_send_msg_size: 67108864
+
+target: all
 
 distributor:
   receivers:
@@ -8,11 +12,12 @@ distributor:
       protocols:
         grpc:
           endpoint: 0.0.0.0:4317
+          max_recv_msg_size_mib: 64
         http:
           endpoint: 0.0.0.0:4318
 
 ingester:
-  max_block_duration: 5m               # Как часто нарезать блоки данных
+  max_block_duration: 5m
   lifecycler:
     ring:
       kvstore:
@@ -21,30 +26,58 @@ ingester:
 
 storage:
   trace:
-    backend: local                     # Храним данные локально
+    backend: local
     wal:
-      path: /var/tempo/wal             # Write Ahead Log
+      path: /var/tempo/wal
     local:
-      path: /var/tempo/blocks          # Финальное хранилище блоков
+      path: /var/tempo/blocks
+
+stream_over_http_enabled: true
 
 compactor:
   ring:
     kvstore:
       store: memberlist
   compaction:
-    block_retention: 24h               # Сколько хранить трейсы (измените под себя)
+    block_retention: 48h
     compacted_block_retention: 1h
 
 metrics_generator:
+  traces_storage:
+    path: /var/tempo/wal
+
+  storage:
+    path: /var/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+        queue_config:
+          max_samples_per_send: 5000
+          capacity: 10000
+
   registry:
     external_labels:
       source: tempo
-  storage:
-    path: /var/tempo/generator/wal
-              # Включаем генерацию метрик из трейсов
+
+  metrics_ingestion_time_range_slack: 30s
+
+  processor:
+    span_metrics:
+      intrinsic_dimensions:
+        status_message: false
+    service_graphs:
+      wait: 15s
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics, local-blocks]
+      collection_interval: 10s
+      max_active_series: 200000
+
 
 memberlist:
   abort_if_cluster_join_fails: false
   bind_port: 7946
   join_members:
-    - 127.0.0.1                        # В single-binary режиме указываем себя
+    - 127.0.0.1
