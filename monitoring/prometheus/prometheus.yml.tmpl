@@ -1,16 +1,17 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: ${SCRAPE_INTERVAL:-60s}
+  evaluation_interval: ${EVAL_INTERVAL:-60s}
 
 scrape_configs:
   - job_name: 'notes-service'
     metrics_path: /notes-service/actuator/prometheus
     static_configs:
-      - targets: ['notes-service:8090']
+      - targets: ['notes-service:${SERVICE_PORT:-9999}']
     relabel_configs:
       - target_label: service
         replacement: notes-service
 
   - job_name: 'prometheus'
+    metrics_path: '${PROMETHEUS_WEB_ROUTE_PREFIX:-}/metrics'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
