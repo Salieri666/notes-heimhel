@@ -163,12 +163,14 @@ services:
       - "4318:4318"     # OTLP HTTP
       - "9095:9095"
     volumes:
-      - ./monitoring/tempo.yaml:/etc/tempo.yaml
+      - ./monitoring/tempo.yaml:/etc/tempo.yaml:ro
       - ./monitoring/tempo-data/wal:/var/tempo/wal
       - ./monitoring/tempo-data/blocks:/var/tempo/blocks
       - ./monitoring/tempo-data/generator-wal:/var/tempo/generator/wal
+      - ./monitoring/tempo-data/generator-traces:/var/tempo/generator/traces
     depends_on:
       - loki
+      - prometheus
     networks:
       - main_network
 

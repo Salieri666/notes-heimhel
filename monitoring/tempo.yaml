@@ -44,8 +44,7 @@ compactor:
 
 metrics_generator:
   traces_storage:
-    path: /var/tempo/wal
-
+    path: /var/tempo/generator/traces
   storage:
     path: /var/tempo/generator/wal
     remote_write:
@@ -54,19 +53,18 @@ metrics_generator:
         queue_config:
           max_samples_per_send: 5000
           capacity: 10000
-
   registry:
     external_labels:
       source: tempo
-
   metrics_ingestion_time_range_slack: 30s
-
   processor:
     span_metrics:
       intrinsic_dimensions:
         status_message: false
     service_graphs:
       wait: 15s
+    local_blocks:
+       flush_to_storage: true
 
 overrides:
   defaults:
@@ -74,7 +72,6 @@ overrides:
       processors: [service-graphs, span-metrics, local-blocks]
       collection_interval: 10s
       max_active_series: 200000
-
 
 memberlist:
   abort_if_cluster_join_fails: false
