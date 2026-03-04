@@ -135,9 +135,6 @@ services:
       - .env
     volumes:
       - ./monitoring/otel-collector.yaml:/etc/otel-collector.yaml:ro
-    ports:
-      - "4327:4327" # OTLP gRPC
-      - "4328:4328" # OTLP HTTP
     depends_on:
       - loki
       - tempo
@@ -153,8 +150,6 @@ services:
     volumes:
       - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
-    ports:
-      - "3100:3100"
     networks:
       - main_network
 
@@ -165,11 +160,6 @@ services:
     command: ["-config.file=/etc/tempo.yaml"]
     env_file:
       - .env
-    ports:
-      - "3200:3200"     # tempo API
-      - "4317:4317"     # OTLP gRPC
-      - "4318:4318"     # OTLP HTTP
-      - "9095:9095"
     volumes:
       - ./monitoring/tempo.yaml:/etc/tempo.yaml:ro
       - ./monitoring/tempo-data/wal:/var/tempo/wal
@@ -199,8 +189,6 @@ services:
   pyroscope:
     image: grafana/pyroscope:1.17.4
     container_name: pyroscope
-    ports:
-      - "4040:4040"
     env_file:
       - .env
     volumes:
