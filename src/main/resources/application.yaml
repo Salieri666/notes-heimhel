@@ -74,3 +74,5 @@ db:
 security:
   cors:
     allowed-origins: ${ALLOWED_ORIGINS}
+
+wkhtmltopdf-path: ${WKHTMLTOPDF_PATH:/usr/local/bin/wkhtmltopdf}

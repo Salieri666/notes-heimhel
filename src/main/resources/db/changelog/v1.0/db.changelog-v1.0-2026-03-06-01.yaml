@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-06-01-01
+      author: ilya
+      changes:
+        - createTable:
+            tableName: templates
+            remarks: "table_for_templates"
+            columns:
+              - column:
+                  name: id
+                  type: varchar(100)
+                  defaultValueComputed: "gen_random_uuid()"
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_templates
+              - column:
+                  name: template_name
+                  type: text
+                  remarks: "Template name"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: code
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: template_type
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: content
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2026-03-06-01-02
+      author: ilya
+      changes:
+        - addUniqueConstraint:
+            tableName: templates
+            columnNames: template_name
+            constraintName: uq_templates_template_name
+
+        - addUniqueConstraint:
+            tableName: templates
+            columnNames: code
+            constraintName: uq_templates_code
+
+
+  - changeSet:
+      id: 2026-03-06-01-03
+      author: ilya
+      changes:
+        - createIndex:
+            tableName: templates
+            indexName: idx_template_code
+            using: btree
+            columns:
+              - column:
+                  name: code
