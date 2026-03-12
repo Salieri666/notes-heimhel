@@ -28,10 +28,10 @@ http://localhost:8090/swagger-ui/index.html
 docker compose --env-file .env up -d
 
 # How to create dumps of postgres database
-pg_dump -h remote_host -p 5432 -U db_user -d db_name -F c -f backup.dump
+pg_dump -h remote_host -p 5432 -U db_user -d db_name -F c -f backup.dump            #--no-owner --no-acl
 
 # How to restore dumps of postgres database
-pg_restore -h remote_host -p 5432 -U db_user -d db_name backup.dump
+pg_restore -h remote_host -p 5432 -U db_user -d db_name backup.dump                 #--no-owner
 
 # How to create dump from container
 docker exec -e PGPASSWORD='postgres' compli-sql-db \

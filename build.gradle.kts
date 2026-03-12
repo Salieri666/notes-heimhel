@@ -39,6 +39,10 @@ dependencies {
 //	implementation("net.logstash.logback:logstash-logback-encoder:9.0")
 	implementation("biz.paluch.logging:logstash-gelf:1.15.1")
 
+	implementation("org.docx4j:docx4j-core:11.5.6")
+	implementation("org.docx4j:docx4j-JAXB-ReferenceImpl:11.5.6")
+	implementation("org.docx4j:docx4j-export-fo:11.5.6")
+
 	implementation("com.github.jhonnymertz:java-wkhtmltopdf-wrapper:1.3.1-RELEASE")
 
 	compileOnly("org.projectlombok:lombok")
